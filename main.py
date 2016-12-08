@@ -18,7 +18,7 @@ class MainPage(Handler):
 	self.render('auth.html' , data = {})
     def post(self):
 	mismatch = False
-	username = self.request.get('username')
+	username, param = self.request.get('username'), self.request.get('username')
 	password = self.request.get('password')
 	verify = self.request.get('verify')
 	email = self.request.get('email')
@@ -30,10 +30,14 @@ class MainPage(Handler):
 		username = False
 	if (mismatch == True or username == True):
 		self.render('auth.html', data = {'username': self.request.get('username'), 
-						'email': self.request.get('email'), 'mismatch': 						mismatch, 'usernameInvalid': username,})
+						'email': self.request.get('email'), 'mismatch': mismatch, 
+						'usernameInvalid': username,})
 	else:
-		self.render('welcome.html', username = self.request.get('username'))
-	 
+		self.redirect('/welcome'+ '?' +'param='+ param)
+class Welcome(Handler):
+	def get(self):
+	    self.render('welcome.html', username = self.request.get('param'))
+		 
 app = webapp2.WSGIApplication([
-    ('/', MainPage)
+    ('/', MainPage), ('/welcome', Welcome)
 ], debug=True)
