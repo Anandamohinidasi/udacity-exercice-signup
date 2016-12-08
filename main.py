@@ -22,16 +22,23 @@ class MainPage(Handler):
 	password = self.request.get('password')
 	verify = self.request.get('verify')
 	email = self.request.get('email')
-	if password!=verify:
-		mismatch = True
+	if 21>len(password)>2:
+		if password!=verify:
+			mismatch = True
+	else:
+		password = False
 	if (' ' in username):
 		username = True
 	else:
-		username = False
-	if (mismatch == True or username == True):
+		if 21>len(username)>2:
+			username = False
+		else:
+			username = True
+	if (mismatch == True or username == True or password == False):
 		self.render('auth.html', data = {'username': self.request.get('username'), 
 						'email': self.request.get('email'), 'mismatch': mismatch, 
-						'usernameInvalid': username,})
+						'usernameInvalid': username,
+						'password': password})
 	else:
 		self.redirect('/welcome'+ '?' +'param='+ param)
 class Welcome(Handler):

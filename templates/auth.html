@@ -13,7 +13,7 @@
 	  </label><br>
 	 <label>Password
 	     <input type="password" name="password" required>
-		{% if password=='invalid'%}
+		{% if data.password == False %}
 		 <span style="color: red;">Please Enter a Valid password</span>
 		{% endif %}
 	  </label><br>
