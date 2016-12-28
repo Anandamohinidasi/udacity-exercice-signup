@@ -75,7 +75,7 @@ class MainPage(Handler):
 						'password': password, 'emailValid': email, 'exists': exists})
 	else:	
 		username = str(self.request.get("username"))
-		password =  str(self.request.get("username"))
+		password =  str(self.request.get("password"))
 		password = '%s|%s' % (password, hmac.new('haribol', password).hexdigest())
 		usuario = Users(name = username, password = password)
 		usuario.put()
@@ -86,18 +86,6 @@ class MainPage(Handler):
 
 class Welcome(Handler):
 	def get(self):	
-	    """
-	    cookie = self.request.cookies.get("user")
-	    def hash_str(cookie):
-		cookie =cookie.split('|',1)
-		return [cookie[0], '%s|%s' % (cookie[0] , hmac.new('haribol',cookie[0]).hexdigest())]
-	    if cookie == hash_str(cookie)[1]:
-		radhe = hash_str(cookie)[0]
-	    else: 
-		radhe = 'no such a user'
-		
-	    self.render('welcome.html', username = radhe)
-	    """
 	    cookie = self.request.cookies.get("user_ID")
 	    cookie_list = cookie.split('|')
 	    print 'Primeira parte: %s ; Segunda parte: %s' % (cookie_list[0], cookie_list[1],)
@@ -107,8 +95,22 @@ class Welcome(Handler):
 		   self.render('welcome.html', username = users)
 	    else:
 		   self.render('auth.html', data={})
-	 
+
+class LoginHandler(Handler):
+	def get(self):
+		self.render('login.html')
+	def post(self):
+		username = self.request.get('username')
+		password = self.request.get('password')
+		v = Users.all().filter('name =', username)
+		a = Users.all().filter('password =', '%s|%s' % (password,hmac.new('haribol', password).hexdigest()))
+		if v.get() and a.get():
+			print 'analisou e aprovou, o username eh: %s e a senha eh: %s' % (username,password)
+			self.render('welcome.html', username=[{'name': username}])
+		else:		
+			print 'analisou e nao aprovou'
+			self.render('login.html', invalid = True)	 
 		 
 app = webapp2.WSGIApplication([
-    ('/signup', MainPage), ('/welcome', Welcome)
+    ('/signup', MainPage), ('/welcome', Welcome), ('/login', LoginHandler)
 ], debug=True)
