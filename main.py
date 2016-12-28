@@ -39,8 +39,6 @@ class MainPage(Handler):
 	verify = self.request.get('verify')
 	email = self.request.get('email')
 	exists = False
-	# stored_usernames = db.GqlQuery("SELECT * FROM Users WHERE name = %s)" % str(username))
-	# stored_usernames = metadata.get_properties_of_kind('Users', start=None, end=None) 
 	v = Users.all().filter('name =', username)
 	print 'haribol'
 	if v.get():
@@ -87,14 +85,17 @@ class MainPage(Handler):
 class Welcome(Handler):
 	def get(self):	
 	    cookie = self.request.cookies.get("user_ID")
-	    cookie_list = cookie.split('|')
-	    print 'Primeira parte: %s ; Segunda parte: %s' % (cookie_list[0], cookie_list[1],)
-	    if cookie_list[1] == hmac.new('haribol', cookie_list[0]).hexdigest():
-		   users = 'test'	
-		   users = db.GqlQuery("SELECT * FROM Users where __key__ = KEY('Users', %s)" % long(cookie_list[0]))
-		   self.render('welcome.html', username = users)
-	    else:
-		   self.render('auth.html', data={})
+	    if cookie:	
+		    cookie_list = cookie.split('|')
+		    print 'Primeira parte: %s ; Segunda parte: %s' % (cookie_list[0], cookie_list[1],)
+		    if cookie_list[1] == hmac.new('haribol', cookie_list[0]).hexdigest():
+			   users = 'test'	
+			   users = db.GqlQuery("SELECT * FROM Users where __key__ = KEY('Users', %s)" % long(cookie_list[0]))
+			   self.render('welcome.html', username = users)
+		    else:
+			   self.render('auth.html', data={})
+            else:
+		    self.redirect('/signup')
 
 class LoginHandler(Handler):
 	def get(self):
@@ -106,11 +107,20 @@ class LoginHandler(Handler):
 		a = Users.all().filter('password =', '%s|%s' % (password,hmac.new('haribol', password).hexdigest()))
 		if v.get() and a.get():
 			print 'analisou e aprovou, o username eh: %s e a senha eh: %s' % (username,password)
-			self.render('welcome.html', username=[{'name': username}])
+			# users = db.GqlQuery("SELECT * FROM Users where name = %s" % username) 			
+			user_id = v.get().key().id()
+			user_id = '%s|%s' % (str(user_id), hmac.new('haribol', str(user_id)).hexdigest())			
+			self.response.headers.add_header('Set-Cookie', 'user_ID=%s, path=/' % user_id)
+			self.redirect('/welcome')
 		else:		
 			print 'analisou e nao aprovou'
 			self.render('login.html', invalid = True)	 
+class LogoutHandler(Handler):
+	def get(self):
+		none = ''
+		self.response.headers.add_header('Set-Cookie', 'user_ID=%s, path=/' % none)
+		self.redirect('/signup')
 		 
 app = webapp2.WSGIApplication([
-    ('/signup', MainPage), ('/welcome', Welcome), ('/login', LoginHandler)
+    ('/signup', MainPage), ('/welcome', Welcome), ('/login', LoginHandler), ('/logout', LogoutHandler)
 ], debug=True)
