@@ -46,8 +46,7 @@ class MainPage(Handler):
 	if v.get():
 		print 'tem'
 		exists = True
-	
-        else:
+	else:
 		if (email):	
 			# compile to check regular expression pattern
 			p = re.compile('^[\S]+@[\S]+.[\S]+$')
@@ -81,6 +80,7 @@ class MainPage(Handler):
 		usuario = Users(name = username, password = password)
 		usuario.put()
 		user_id = usuario.key().id()
+		user_id = '%s|%s' % (str(user_id), hmac.new('haribol', str(user_id)).hexdigest())
 		self.response.headers.add_header('Set-Cookie', 'userid=%s, path=/' % user_id)
 		self.redirect('/welcome')
 
@@ -99,8 +99,15 @@ class Welcome(Handler):
 	    self.render('welcome.html', username = radhe)
 	    """
 	    cookie = self.request.cookies.get("userid")
-	    users = db.GqlQuery("SELECT * FROM Users where __key__ = KEY('Users', %s)" % long(cookie))
-	    self.render('welcome.html', username = users)
+	    cookie_list = cookie.split('|')
+	    print 'Primeira parte: %s ; Segunda parte: %s' % (cookie_list[0], cookie_list[1],)
+	    if cookie_list[1] == hmac.new('haribol', cookie_list[0]).hexdigest():
+		   users = 'test'	
+		   users = db.GqlQuery("SELECT * FROM Users where __key__ = KEY('Users', %s)" % long(cookie_list[0]))
+		   self.render('welcome.html', username = users)
+	    else:
+		   self.render('auth.html', data={})
+	 
 		 
 app = webapp2.WSGIApplication([
     ('/signup', MainPage), ('/welcome', Welcome)
