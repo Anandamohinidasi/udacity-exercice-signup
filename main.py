@@ -81,7 +81,7 @@ class MainPage(Handler):
 		usuario.put()
 		user_id = usuario.key().id()
 		user_id = '%s|%s' % (str(user_id), hmac.new('haribol', str(user_id)).hexdigest())
-		self.response.headers.add_header('Set-Cookie', 'userid=%s, path=/' % user_id)
+		self.response.headers.add_header('Set-Cookie', 'user_ID=%s, path=/' % user_id)
 		self.redirect('/welcome')
 
 class Welcome(Handler):
@@ -98,7 +98,7 @@ class Welcome(Handler):
 		
 	    self.render('welcome.html', username = radhe)
 	    """
-	    cookie = self.request.cookies.get("userid")
+	    cookie = self.request.cookies.get("user_ID")
 	    cookie_list = cookie.split('|')
 	    print 'Primeira parte: %s ; Segunda parte: %s' % (cookie_list[0], cookie_list[1],)
 	    if cookie_list[1] == hmac.new('haribol', cookie_list[0]).hexdigest():
